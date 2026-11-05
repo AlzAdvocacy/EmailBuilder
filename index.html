@@ -141,6 +141,10 @@ button, input { font-family: inherit; }
 .btn.muted { background: var(--muted-btn-bg); border-color: var(--border); color: var(--muted-btn-text); }
 .btn.hex { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; letter-spacing: 0.02em; }
 .btn.hex .swatch { flex: none; width: 14px; height: 14px; border-radius: 50%; background: #4A0D66; border: 1.5px solid #FFFFFF; box-shadow: 0 0 0 1px var(--accent-text); }
+.btn.hex svg { width: 15px; height: 15px; }
+.cnote { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: var(--coach-bg); color: var(--coach-text); font-family: var(--font); font-size: 14px; line-height: 1.4; font-weight: 600; }
+.cnote svg { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--tag-text); }
+.cnote a { color: inherit; font-weight: 800; word-break: break-all; }
 .btn svg { width: 18px; height: 18px; flex: none; }
 .step-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-top: 18px; border-top: 1px solid var(--border); }
 .step-nav .group { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -1023,6 +1027,9 @@ function pickSummary(key) {
   return render(PS[i], "preview");
 }
 var BRAND_PURPLE = "#4A0D66"; /* Association primary purple, used for email buttons */
+var CAMPAIGN_URL = "https://alz-action.quorum.us/CallASAP/"; /* Call campaign both buttons link to */
+var CAMPAIGN_SHORT = "alz-action.quorum.us/CallASAP";
+var LINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.5-1.5"/></svg>';
 var COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
 var INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.5h.01"/></svg>';
 
@@ -1085,10 +1092,12 @@ function renderReview() {
                   : '<button type="button" class="btn small muted" data-copy="header">Download PNG</button>';
     } else {
       act = '<button type="button" class="btn small' + (ready ? "" : " muted") + '" data-copy="' + p.id + '" aria-label="Copy ' + esc(p.label) + '">' + COPY + "<span>Copy</span></button>";
-      if (p.id === "btn1" || p.id === "btn2") act += '<button type="button" class="btn small secondary hex" data-hex="' + BRAND_PURPLE + '" title="Button color. Click to copy the hex code for Quorum." aria-label="Copy button color ' + BRAND_PURPLE + '"><span class="swatch" aria-hidden="true"></span><span class="hexlabel">' + BRAND_PURPLE + "</span></button>";
+      if (p.id === "btn1" || p.id === "btn2") act += '<button type="button" class="btn small secondary hex" data-hex="' + BRAND_PURPLE + '" title="Button color. Click to copy the hex code for Quorum." aria-label="Copy button color ' + BRAND_PURPLE + '"><span class="swatch" aria-hidden="true"></span><span class="hexlabel">' + BRAND_PURPLE + "</span></button>" +
+        '<button type="button" class="btn small secondary hex" data-link="' + CAMPAIGN_URL + '" title="Call campaign link. Click to copy it for the button in Quorum." aria-label="Copy call campaign link">' + LINK + '<span class="hexlabel">' + CAMPAIGN_SHORT + "</span></button>";
     }
     h += '<div class="cblock"><div class="cblock-head"><span class="cnum" aria-hidden="true">' + (i + 1) + '</span><span class="clabel">' + esc(p.label) + '</span><span class="cact">' + act +
-      '<button type="button" class="linkbtn" data-step="' + PICK_KEYS.indexOf(p.change) + '">Change</button></span></div><div class="cblock-body' + (p.id === "header" ? " flush" : "") + '">' + partPreview(p.id) + "</div></div>";
+      '<button type="button" class="linkbtn" data-step="' + PICK_KEYS.indexOf(p.change) + '">Change</button></span></div><div class="cblock-body' + (p.id === "header" ? " flush" : "") + '">' + partPreview(p.id) +
+      ((p.id === "btn1" || p.id === "btn2") ? '<p class="cnote">' + INFO + '<span>Don\'t forget to link this button to the call campaign in Quorum: <a href="' + CAMPAIGN_URL + '" target="_blank" rel="noopener">' + CAMPAIGN_URL + "</a></span></p>" : "") + "</div></div>";
   });
   h += "</div>";
   h += '<h3 class="sub">Or Copy the Whole Email</h3><div class="actions"><button type="button" class="btn" id="copy-rich">Copy Formatted Email</button>' +
@@ -1103,6 +1112,7 @@ function renderReview() {
   h += '<h3 class="sub">Do in Quorum</h3><ul class="checks">' + [
     "Build it in the advanced email editor and send from your @alz.org address",
     "Replace every highlighted placeholder with the real placeholder in Quorum",
+    "Link both buttons to the call campaign at " + CAMPAIGN_URL,
     "Turn on the Region filter, even if you only cover 1 state",
     "Turn on the Active Emails filter, unless you're sending to a single congressional district",
     "Send call asks to folks who have taken an action before",
@@ -1264,12 +1274,12 @@ function flashCopied(btn) {
   label.textContent = "Copied";
   setTimeout(function () { if (document.body.contains(btn)) label.textContent = "Copy"; }, 1600);
 }
-function copyHex(hex, btn) {
-  copyText(hex).then(function (ok) {
+function copyChip(value, btn, msg) {
+  copyText(value).then(function (ok) {
     if (!ok) { copied(false); return; }
-    var label = btn && btn.querySelector(".hexlabel");
-    if (label) { label.textContent = "Copied"; setTimeout(function () { if (document.body.contains(btn)) label.textContent = hex; }, 1600); }
-    toast("Button color " + hex + " copied. Paste it into the button color field in Quorum.");
+    var label = btn && btn.querySelector(".hexlabel"), was = label ? label.textContent : "";
+    if (label) { label.textContent = "Copied"; setTimeout(function () { if (document.body.contains(btn)) label.textContent = was; }, 1600); }
+    toast(msg);
   });
 }
 function copyPart(id, btn) {
@@ -1297,7 +1307,8 @@ document.addEventListener("click", function (e) {
   if (t.dataset.dl) { downloadHeader(+t.dataset.dl); return; }
   if (t.dataset.alt) { copyText(altFor(+t.dataset.alt)).then(function (ok) { copied(ok, "Alt text"); }); return; }
   if (t.dataset.copy) { copyPart(t.dataset.copy, t); return; }
-  if (t.dataset.hex) { copyHex(t.dataset.hex, t); return; }
+  if (t.dataset.hex) { copyChip(t.dataset.hex, t, "Button color " + t.dataset.hex + " copied. Paste it into the button color field in Quorum."); return; }
+  if (t.dataset.link) { copyChip(t.dataset.link, t, "Call campaign link copied. Paste it as the button link in Quorum."); return; }
   switch (t.id) {
     case "next": goStep(ui.step + 1); break;
     case "back": goStep(ui.step - 1); break;
