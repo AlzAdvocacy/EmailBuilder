@@ -139,6 +139,8 @@ button, input { font-family: inherit; }
 .btn.secondary:hover { background: var(--hover-bg); }
 .btn.small { font-size: 14px; padding: 10px 16px; }
 .btn.muted { background: var(--muted-btn-bg); border-color: var(--border); color: var(--muted-btn-text); }
+.btn.hex { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; letter-spacing: 0.02em; }
+.btn.hex .swatch { flex: none; width: 14px; height: 14px; border-radius: 50%; background: #4A0D66; border: 1.5px solid #FFFFFF; box-shadow: 0 0 0 1px var(--accent-text); }
 .btn svg { width: 18px; height: 18px; flex: none; }
 .step-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-top: 18px; border-top: 1px solid var(--border); }
 .step-nav .group { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -1020,6 +1022,7 @@ function pickSummary(key) {
   if (key === "signoff") return render(SIGNOFFS[i], "preview");
   return render(PS[i], "preview");
 }
+var BRAND_PURPLE = "#4A0D66"; /* Association primary purple, used for email buttons */
 var COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
 var INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.5h.01"/></svg>';
 
@@ -1082,6 +1085,7 @@ function renderReview() {
                   : '<button type="button" class="btn small muted" data-copy="header">Download PNG</button>';
     } else {
       act = '<button type="button" class="btn small' + (ready ? "" : " muted") + '" data-copy="' + p.id + '" aria-label="Copy ' + esc(p.label) + '">' + COPY + "<span>Copy</span></button>";
+      if (p.id === "btn1" || p.id === "btn2") act += '<button type="button" class="btn small secondary hex" data-hex="' + BRAND_PURPLE + '" title="Button color. Click to copy the hex code for Quorum." aria-label="Copy button color ' + BRAND_PURPLE + '"><span class="swatch" aria-hidden="true"></span><span class="hexlabel">' + BRAND_PURPLE + "</span></button>";
     }
     h += '<div class="cblock"><div class="cblock-head"><span class="cnum" aria-hidden="true">' + (i + 1) + '</span><span class="clabel">' + esc(p.label) + '</span><span class="cact">' + act +
       '<button type="button" class="linkbtn" data-step="' + PICK_KEYS.indexOf(p.change) + '">Change</button></span></div><div class="cblock-body' + (p.id === "header" ? " flush" : "") + '">' + partPreview(p.id) + "</div></div>";
@@ -1260,6 +1264,14 @@ function flashCopied(btn) {
   label.textContent = "Copied";
   setTimeout(function () { if (document.body.contains(btn)) label.textContent = "Copy"; }, 1600);
 }
+function copyHex(hex, btn) {
+  copyText(hex).then(function (ok) {
+    if (!ok) { copied(false); return; }
+    var label = btn && btn.querySelector(".hexlabel");
+    if (label) { label.textContent = "Copied"; setTimeout(function () { if (document.body.contains(btn)) label.textContent = hex; }, 1600); }
+    toast("Button color " + hex + " copied. Paste it into the button color field in Quorum.");
+  });
+}
 function copyPart(id, btn) {
   if (id === "header") { toast("Pick a header first."); goStep(PICK_KEYS.indexOf("header")); return; }
   var c = partContent(id);
@@ -1285,6 +1297,7 @@ document.addEventListener("click", function (e) {
   if (t.dataset.dl) { downloadHeader(+t.dataset.dl); return; }
   if (t.dataset.alt) { copyText(altFor(+t.dataset.alt)).then(function (ok) { copied(ok, "Alt text"); }); return; }
   if (t.dataset.copy) { copyPart(t.dataset.copy, t); return; }
+  if (t.dataset.hex) { copyHex(t.dataset.hex, t); return; }
   switch (t.id) {
     case "next": goStep(ui.step + 1); break;
     case "back": goStep(ui.step - 1); break;
